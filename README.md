@@ -42,3 +42,11 @@ npm run lint
 If you want the form to hit a real endpoint, 
 I can add a tiny /app/api/contact/route.ts that validates inputs with zod, rate-limits by IP, 
 and sends an email via your provider (Resend/Sendgrid) — all wired to this component.
+
+
+
+
+### git 
+git rm --cached pnpm-lock.yaml
+git commit -m "Use npm only; remove pnpm-lock"
+git push
