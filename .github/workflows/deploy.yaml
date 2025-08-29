@@ -1,0 +1,65 @@
+name: Build and Deploy NextJS App to S3 and CloudFront
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  id-token: write   # for OIDC
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: eu-north-1
+      S3_BUCKET: ms-alam-uk
+      CLOUDFRONT_DISTRIBUTION_ID: E1WFX3JTQ573W0
+      NEXTJS_DIST: out
+      NEXT_TELEMETRY_DISABLED: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::132930376828:role/oidc-aws-github
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (Next.js static export -> ./out)
+        run: npm run build
+
+      - name: Verify build output exists
+        run: test -d "${{ env.NEXTJS_DIST }}" && ls -la "${{ env.NEXTJS_DIST }}"
+
+      # HTML = short cache so updates appear fast
+      - name: Upload HTML (short cache)
+        run: |
+          aws s3 sync "${{ env.NEXTJS_DIST }}" "s3://${{ env.S3_BUCKET }}" --delete \
+            --exclude "*.js" --exclude "*.css" --exclude "*.png" --exclude "*.jpg" --exclude "*.jpeg" --exclude "*.svg" \
+            --cache-control "public, max-age=300"
+
+      # Assets = long cache, immutable (hashed filenames)
+      - name: Upload assets (long cache, immutable)
+        run: |
+          aws s3 sync "${{ env.NEXTJS_DIST }}" "s3://${{ env.S3_BUCKET }}" --delete \
+            --exclude "*" --include "*.js" --include "*.css" --include "*.png" --include "*.jpg" --include "*.jpeg" --include "*.svg" \
+            --cache-control "public, max-age=31536000, immutable"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ env.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*"
