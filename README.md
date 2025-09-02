@@ -50,3 +50,14 @@ and sends an email via your provider (Resend/Sendgrid) — all wired to this com
 git rm --cached pnpm-lock.yaml
 git commit -m "Use npm only; remove pnpm-lock"
 git push
+
+git add .github/workflows/deploy.yml
+git commit -m "Add deploy workflow"
+git push origin main
+
+
+
+# commands
+rm -rf .next out
+npm ci      
+npm run build
