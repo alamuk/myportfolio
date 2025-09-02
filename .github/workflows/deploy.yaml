@@ -34,6 +34,13 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Debug GHA context
+        run: |
+          echo "GITHUB_REF=${GITHUB_REF}"
+          echo "GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}"
+          echo "Expected sub (branch): repo:alamuk/myportfolio:ref:${GITHUB_REF}"
+
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
