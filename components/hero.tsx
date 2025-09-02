@@ -84,7 +84,7 @@ export default function Hero() {
                   className="font-mono mb-6 text-6xl font-extrabold leading-tight text-white md:text-6xl lg:text-7xl"
               >
               <span className="animate-pulse text-white-700 motion-reduce:animate-none ">
-                MD SHAH ALAM
+                MD SHAH
               </span>
               </h1>
               <p
